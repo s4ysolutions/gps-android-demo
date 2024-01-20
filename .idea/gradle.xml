@@ -10,7 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/gps" />
+            <option value="$PROJECT_DIR$/gps-android" />
             <option value="$PROJECT_DIR$/map" />
             <option value="$PROJECT_DIR$/mapsforge" />
             <option value="$PROJECT_DIR$/permissions" />

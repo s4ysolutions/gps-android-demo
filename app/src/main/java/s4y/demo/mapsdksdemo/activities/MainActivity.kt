@@ -1,5 +1,6 @@
 package s4y.demo.mapsdksdemo.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -11,19 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,9 +35,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import s4y.demo.mapsdksdemo.composables.Map
+import s4y.demo.mapsdksdemo.composables.iconbuttons.ToggleKalmanButton
 import s4y.demo.mapsdksdemo.composables.iconbuttons.RecordingIconButton
-import s4y.demo.mapsdksdemo.composables.iconbuttons.RequestCurrentPositionIconButton
-import s4y.demo.mapsdksdemo.composables.menus.AppMenu
+import s4y.demo.mapsdksdemo.composables.iconbuttons.CenterCurrentPositionIconButton
+import s4y.demo.mapsdksdemo.lib.cast.toMapPosition
 import s4y.demo.mapsdksdemo.ui.theme.MapSDKsDemoTheme
 import s4y.demo.mapsdksdemo.viewmodels.MainViewModel
 
@@ -60,20 +58,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun Root(vm: MainViewModel = viewModel()) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    // val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     val accessFineLocationState =
         rememberPermissionState(android.Manifest.permission.ACCESS_FINE_LOCATION)
     val accessCoarseLocationState =
         rememberPermissionState(android.Manifest.permission.ACCESS_COARSE_LOCATION)
 
-    val isUpdatingActive by vm.gpsManager.last.status.asStateFlow().collectAsState()
+    val isUpdatingActive by vm.gpsUpdatesManager.last.status.asStateFlow().collectAsState()
+    val isRequestingCurrentPosition by vm.gpsCurrentPositionManager.status.asStateFlow()
+        .collectAsState()
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val safeGps = { body: () -> Unit ->
         if (accessFineLocationState.status.isGranted) {
@@ -88,94 +88,98 @@ fun Root(vm: MainViewModel = viewModel()) {
             Toast.makeText(context, "No permission", Toast.LENGTH_SHORT).show()
         }
     }
+
+    /*
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet { AppMenu()}
         },
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    colors = topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    title = {
-                        Text("Top app bar")
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
+     */
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text("Top app bar")
+                },
+                actions = {
+                    IconButton(
+                        onClick = {/*
                                 scope.launch {
                                     drawerState.apply {
                                         if (isClosed) open() else close()
                                     }
                                 }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = "Localized description"
-                            )
+*/
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = "Localized description"
+                        )
                     }
-                )
-            },
-            bottomBar = {
-                BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                ) {
-                    RequestCurrentPositionIconButton(
-                        isRequestingCurrentPosition = false,
-                        safeGps = safeGps,
-                    )
-                    RecordingIconButton(isRecording = isUpdatingActive, safeGps = safeGps)
-                    /*
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    text = "Bottom app bar",
-                )
-                 */
-                    /*
-                IconButton(
-                    onClick = {
-                        if (!isRequestingCurrentPosition) safeGps {
-                            vm.updateCenter(context)
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = if (isRequestingCurrentPosition)
-                            Icons.Filled.Close
-                        else
-                            Icons.Filled.LocationOn,
-                        contentDescription = "Localized description"
-                    )
                 }
-                 */
-                }
-            },
-            /*
-        floatingActionButton = {
-            FloatingActionButton(onClick = { presses++ }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        }
-         */
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.primary,
             ) {
-                Map(
-                    modifier = Modifier.fillMaxSize(),
+                CenterCurrentPositionIconButton(safeGps)
+                RecordingIconButton(isRecording = isUpdatingActive, safeGps = safeGps)
+                ToggleKalmanButton(safeGps = safeGps)
+                /*
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                text = "Bottom app bar",
+            )
+             */
+                /*
+            IconButton(
+                onClick = {
+                    if (!isRequestingCurrentPosition) safeGps {
+                        vm.updateCenter(context)
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = if (isRequestingCurrentPosition)
+                        Icons.Filled.Close
+                    else
+                        Icons.Filled.LocationOn,
+                    contentDescription = "Localized description"
                 )
             }
+             */
+            }
+        },
+        /*
+    floatingActionButton = {
+        FloatingActionButton(onClick = { presses++ }) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
         }
     }
+     */
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Map(
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+    /*
+    }
+     */
 }

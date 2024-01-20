@@ -8,7 +8,9 @@ import s4y.demo.mapsdksdemo.gps.filters.GPSFilters
 import s4y.demo.mapsdksdemo.map.dependencies.IMap
 
 class MainViewModel : ViewModel() {
-    val gpsManager = Di.gpsUpdatesManager
+    val gpsUpdatesManager = Di.gpsUpdatesManager
+    val gpsCurrentPositionManager = Di.gpsCurrentPositionManager
+
     private val mapViewManager = Di.mapsManager
 
     private var _map: IMap? = null

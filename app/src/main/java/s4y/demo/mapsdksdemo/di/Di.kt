@@ -7,10 +7,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import s4y.demo.mapsdksdemo.Application
 import s4y.demo.mapsdksdemo.appstate.GPSFilterPreference
+import s4y.demo.mapsdksdemo.gps.GPSCurrentPositionManager
 import s4y.demo.mapsdksdemo.gps.GPSUpdatesManager
+import s4y.demo.mapsdksdemo.gps.dependencies.IGPSCurrentPositionProvider
 import s4y.demo.mapsdksdemo.gps.dependencies.IGPSFilterProvider
 import s4y.demo.mapsdksdemo.gps.dependencies.IGPSUpdatesStore
 import s4y.demo.mapsdksdemo.gps.filters.GPSFilter
+import s4y.demo.mapsdksdemo.gps.implementation.AndroidGPSCurrentPositionProvider
 import s4y.demo.mapsdksdemo.gps.implementation.AndroidGPSUpdatesProvider
 import s4y.demo.mapsdksdemo.gps.implementation.ArrayGPSUpdatesStore
 import s4y.demo.mapsdksdemo.map.MapsManager
@@ -47,7 +50,8 @@ class Di {
 
 
         val gpsUpdatesManager: GPSUpdatesManager by lazy {
-            val gpsFilterProvider = object : IGPSFilterProvider {
+            val gpsFilterProvider = object :
+                IGPSFilterProvider {
                 private val preference = GPSFilterPreference(application)
                 override var filter: GPSFilter by preference
                 override fun asStateFlow(): StateFlow<GPSFilter> = preference.asStateFlow()
@@ -59,6 +63,13 @@ class Di {
                 gpsFilterProvider,
                 CoroutineScope(Dispatchers.IO + SupervisorJob())
             )
+        }
+
+        private val gpsCurrentPositionProvider: IGPSCurrentPositionProvider by lazy {
+            AndroidGPSCurrentPositionProvider()
+        }
+        val gpsCurrentPositionManager: GPSCurrentPositionManager by lazy {
+            GPSCurrentPositionManager(gpsCurrentPositionProvider)
         }
     }
 }

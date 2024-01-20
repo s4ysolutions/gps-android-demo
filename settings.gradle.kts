@@ -6,7 +6,9 @@ pluginManagement {
     }
 }
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    @Suppress("UnstableApiUsage")
     repositories {
         google()
         mavenCentral()
@@ -17,6 +19,6 @@ rootProject.name = "MapSDKsDemo"
 include(":app")
 include(":mapsforge")
 include(":map")
-include(":gps")
+include(":gps-android")
 include(":permissions")
 include(":tests")

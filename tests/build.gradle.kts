@@ -16,7 +16,7 @@ dependencies {
     testImplementation(kotlin("test"))
     // testImplementation(kotlin("test-junit"))
     testImplementation(kotlin("test-junit5"))
-    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.mockito:mockito-core:5.9.0")
 }
 
 tasks.test {

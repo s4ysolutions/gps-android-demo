@@ -3,7 +3,6 @@ package s4y.demo.mapsdksdemo.composables.iconbuttons
 import android.annotation.SuppressLint
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,9 +23,9 @@ fun RecordingIconButton(
     return IconButton(
         onClick = {
             if (isRecording)
-                vm.gpsManager.stopRecording()
+                vm.gpsUpdatesManager.stopRecording()
             else safeGps {
-                vm.gpsManager.startRecording(context)
+                vm.gpsUpdatesManager.startRecording(context)
             }
         }
     ) {

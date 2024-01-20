@@ -12,7 +12,7 @@ import s4y.demo.mapsdksdemo.viewmodels.MainViewModel
 
 @Composable
 fun AppMenu(vm: MainViewModel = viewModel()) {
-    val selected = vm.gpsManager.filter.asStateFlow().collectAsState()
+    val selected = vm.gpsUpdatesManager.filter.asStateFlow().collectAsState()
     vm.filters.forEach { filter ->
         DropdownMenuItem(
             text = {
@@ -38,7 +38,7 @@ fun AppMenu(vm: MainViewModel = viewModel()) {
                 }
             },
             onClick = {
-                vm.gpsManager.filter.set(filter)
+                vm.gpsUpdatesManager.filter.set(filter)
             })
         /*
     DropdownMenuItem(onClick = {
