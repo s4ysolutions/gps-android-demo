@@ -208,13 +208,15 @@ class TransitionTest {
         )
         val velocity2 = transition.velocity
         // Assert
-        assertEquals(0.0f, velocity1.mPerSec)
+        assertEquals(0.0, velocity1.mPerSec)
 
         val dx = lon1.meters - lon0.meters
+        assertEquals(dx / 2.0, velocity2.x.meters)
         val dy = lat1.meters - lat0.meters
+        assertEquals(dy / 2.0, velocity2.y.meters)
         val distance = sqrt(dx * dx + dy * dy)
-        val velocity = (distance / 2.0).toFloat()
-        assertEquals(velocity, velocity2.mPerSec)
+        val velocity = (distance / 2.0)
+        assertEquals(velocity, velocity2.mPerSec, 1e-2)
     }
     @Test
     fun transition_shouldCalculateBearing() {

@@ -3,6 +3,7 @@ package s4y.demo.mapsdksdemo.gps.data
 import java.lang.Math.toRadians
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 sealed class Units {
     internal companion object {
@@ -51,7 +52,7 @@ sealed class Units {
     }
 
     class Bearing private constructor(val degrees: Double) {
-        private val radian: Double = toRadians(degrees.toDouble())
+        private val radian: Double = toRadians(degrees)
         val cos: Double = cos(radian)
         val sin: Double = sin(radian)
         companion object {
@@ -109,23 +110,22 @@ sealed class Units {
      * Velocity in meters per second
      * @param mPerSec velocity in meters per second
      * @param bearing bearing in degrees, velocity is a vector and it does not matter with bearing
-     * @param longitude latitude, it is needed to convert y projection meters to degrees
-     * @param latitude latitude, it is needed to convert x projection meters to degrees
+     * param longitude longitude, it is needed to convert y projection meters to degrees
+     * param latitude latitude, it is needed to convert x projection meters to degrees
      */
-    class Velocity(val mPerSec: Float, bearing: Bearing, longitude: Longitude, latitude: Latitude) {
+    class Velocity private  constructor(val mPerSec: Double, val x: Projection.X, val y: Projection.Y) {
+                   //bearing: Bearing, longitude: Longitude, latitude: Latitude) {
+
+        constructor(metersX: Double, metersY: Double) : this(
+            sqrt(metersX * metersX + metersY * metersY),
+            Projection.X.fromX(metersX),
+            Projection.Y.fromY(metersY))
         constructor(
             mPerSec: Double,
             bearing: Bearing,
-            longitude: Longitude,
-            latitude: Latitude
-        ) : this(mPerSec.toFloat(), bearing, longitude, latitude)
+        ) : this(mPerSec, Projection.X.fromModule(mPerSec, bearing), Projection.Y.fromModule(mPerSec, bearing))
 
-        @Suppress("unused")
-        val x = Projection.X.fromMeters(mPerSec, bearing, latitude)
-
-        @Suppress("unused")
-        val y = Projection.Y.fromMeters(mPerSec, bearing, longitude)
-        val kmPerH = mPerSec * 3600 / 1000
+        val kmPerH = (mPerSec * 3600 / 1000).toFloat()
     }
 
 }

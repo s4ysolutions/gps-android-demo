@@ -116,10 +116,13 @@ class Transition {
     val bearingDegrees get() = Math.toDegrees(_currentBearing)
     val velocity: Units.Velocity
         get() = Units.Velocity(
+            _currentVelocityX, _currentVelocityY
+                    /*
             sqrt(_currentVelocityX * _currentVelocityX + _currentVelocityY * _currentVelocityY),
             Units.Bearing.fromRadians(_currentBearing),
             longitude,
             latitude
+                     */
         )
     val velocityX: Double get() = _currentVelocityX
     val velocityY: Double get() = _currentVelocityY
