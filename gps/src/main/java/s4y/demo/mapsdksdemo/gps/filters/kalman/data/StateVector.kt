@@ -2,12 +2,12 @@ package s4y.demo.mapsdksdemo.gps.filters.kalman.data
 
 import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
-import s4y.demo.mapsdksdemo.gps.filters.kalman.GPSFilterKalman
+import s4y.demo.mapsdksdemo.gps.filters.kalman.Transition
 import kotlin.math.sqrt
 
 sealed class StateVector private constructor() {
     abstract val vectorMeters: DoubleArray
-    abstract fun toGpsUpdate(transition: GPSFilterKalman.Transition): GPSUpdate
+    abstract fun toGpsUpdate(transition: Transition): GPSUpdate
     class LongitudeLatitude(override val vectorMeters: DoubleArray) :
         StateVector() {
         private val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
@@ -16,13 +16,13 @@ sealed class StateVector private constructor() {
             latitude
         )
 
-        override fun toGpsUpdate(transition: GPSFilterKalman.Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: Transition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,
                 transition.velocity.kmPerH,
                 transition.accuracy.meters.accuracy,
-                transition.bearing,
+                transition.bearingDegrees,
                 transition.ts
             )
         }
@@ -41,13 +41,13 @@ sealed class StateVector private constructor() {
                 .toFloat()
         }
 
-        override fun toGpsUpdate(transition: GPSFilterKalman.Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: Transition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,
                 velocity,
                 transition.accuracy.meters.accuracy,
-                transition.evaluatedBearing.degrees,
+                transition.bearingDegrees,
                 transition.ts
             )
         }
@@ -70,13 +70,13 @@ sealed class StateVector private constructor() {
         val accelerationX: Double = array[5]
         val accelerationY: Double = array[6]
          */
-        override fun toGpsUpdate(transition: GPSFilterKalman.Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: Transition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,
                 velocity,
                 transition.accuracy.meters.accuracy,
-                transition.evaluatedBearing.degrees,
+                transition.bearingDegrees,
                 transition.ts
             )
         }

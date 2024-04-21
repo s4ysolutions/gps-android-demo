@@ -50,12 +50,18 @@ sealed class Units {
         }
     }
 
-    class Bearing(val degrees: Double) {
+    class Bearing private constructor(val degrees: Double) {
         private val radian: Double = toRadians(degrees.toDouble())
         val cos: Double = cos(radian)
         val sin: Double = sin(radian)
         companion object {
             const val maxVarianceDegrees: Double = 180.0
+            fun fromDegrees(degrees: Double): Bearing {
+                return Bearing(degrees)
+            }
+            fun fromRadians(radians: Double): Bearing {
+                return Bearing(Math.toDegrees(radians))
+            }
         }
     }
 

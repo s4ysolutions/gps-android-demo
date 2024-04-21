@@ -1,14 +1,15 @@
 package s4y.demo.mapsdksdemo.gps.filters.kalman.data
 
-import s4y.demo.mapsdksdemo.gps.filters.kalman.GPSFilterKalman
-sealed class MeasurementVector(private val transition: GPSFilterKalman.Transition) {
+import s4y.demo.mapsdksdemo.gps.filters.kalman.Transition
+
+sealed class MeasurementVector(private val transition: Transition) {
 
     abstract val state: StateVector
     override fun toString(): String = with(transition) {
-        "MeasurementVector(latitude=$latitude, longitude=$longitude, velocity=$velocity, bearing=$evaluatedBearing, accuracy=$accuracy, ts=$ts)"
+        "MeasurementVector(latitude=$latitude, longitude=$longitude, velocity=$velocity, bearing=$bearingDegrees, accuracy=$accuracy, ts=$ts)"
     }
 
-    class LongitudeLatitude(transition: GPSFilterKalman.Transition) :
+    class LongitudeLatitude(transition: Transition) :
         MeasurementVector(transition) {
         override val state =
             StateVector.LongitudeLatitude(
@@ -22,7 +23,7 @@ sealed class MeasurementVector(private val transition: GPSFilterKalman.Transitio
     // It was noted GPS bearing is not reliable, so we use the bearing from the previous state
     // trying to keep the bearing constant
     // val bearing = transition.evaluatedBearing
-    class VelocityBearing(transition: GPSFilterKalman.Transition) : MeasurementVector(transition) {
+    class VelocityBearing(transition: Transition) : MeasurementVector(transition) {
         override val state =
             StateVector.Velocity(
                 doubleArrayOf(
@@ -34,7 +35,7 @@ sealed class MeasurementVector(private val transition: GPSFilterKalman.Transitio
             )
     }
 
-    class AccelerationBearing(transition: GPSFilterKalman.Transition) :
+    class AccelerationBearing(transition: Transition) :
         MeasurementVector(transition) {
         override val state =
             StateVector.Acceleration(
