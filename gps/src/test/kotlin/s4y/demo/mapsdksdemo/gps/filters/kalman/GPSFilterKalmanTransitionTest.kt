@@ -8,11 +8,11 @@ import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
 import kotlin.math.sqrt
 
-class TransitionTest {
+class GPSFilterKalmanTransitionTest {
     @Test
     fun transition_shouldCalculateDt() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         // Act
         val dt0 = transition.dtSec
         val dtChanged0 = transition.dtChanged
@@ -52,7 +52,7 @@ class TransitionTest {
     @Test
     fun transition_shouldCalculateAccuracy() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         // Act
         val accuracy0 = transition.accuracyChanged
         transition.setCurrentState(
@@ -82,7 +82,7 @@ class TransitionTest {
     @Test
     fun transition_shouldCalculateAccuracyChangedAtFirst() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         // Act
         val accuracy0 = transition.accuracyChanged
         transition.setCurrentState(
@@ -111,7 +111,7 @@ class TransitionTest {
     @Test
     fun transition_shouldTrackMeters() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         val lat0 = Units.Latitude.fromDegrees(45.0)
         val lon0 = Units.Longitude.fromDegrees(45.0, lat0)
         // Act
@@ -128,7 +128,7 @@ class TransitionTest {
     @Test
     fun transition_shouldTrackLongitudeLatitude() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         val lat0 = Units.Latitude.fromDegrees(45.0)
         val lon0 = Units.Longitude.fromDegrees(45.0, lat0)
         // Act
@@ -162,7 +162,7 @@ class TransitionTest {
     @Test
     fun transition_shouldCalculateProjections() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         val lat1 = Units.Latitude.fromDegrees(45.0)
         val lon1 = Units.Longitude.fromDegrees(45.0, lat1)
         val lat2 = Units.Latitude.fromDegrees(46.0)
@@ -193,7 +193,7 @@ class TransitionTest {
     @Test
     fun transition_shouldCalculateVelocity() {
         // Arrange
-        val transition = Transition()
+        val transition = GPSFilterKalmanTransition()
         val lat0 = Units.Latitude.fromDegrees(45.0)
         val lon0 = Units.Longitude.fromDegrees(45.0, lat0)
         val lat1 = Units.Latitude.fromDegrees(46.0)
@@ -248,7 +248,7 @@ class TransitionTest {
         val latNW = Units.Latitude.fromDegrees(1.0)
         val lonNW = Units.Longitude.fromDegrees(-1.0, latNE)
         // Act
-        val transitionN = Transition()
+        val transitionN = GPSFilterKalmanTransition()
         transitionN.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -257,7 +257,7 @@ class TransitionTest {
         )
         val bearingN = transitionN.bearingDegrees
 
-        val transitionNE = Transition()
+        val transitionNE = GPSFilterKalmanTransition()
         transitionNE.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -266,7 +266,7 @@ class TransitionTest {
         )
         val bearingNE = transitionNE.bearingDegrees
 
-        val transitionE = Transition()
+        val transitionE = GPSFilterKalmanTransition()
         transitionE.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -275,7 +275,7 @@ class TransitionTest {
         )
         val bearingE = transitionE.bearingDegrees
 
-        val transitionSE = Transition()
+        val transitionSE = GPSFilterKalmanTransition()
         transitionSE.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -284,7 +284,7 @@ class TransitionTest {
         )
         val bearingSE = transitionSE.bearingDegrees
 
-        val transitionS = Transition()
+        val transitionS = GPSFilterKalmanTransition()
         transitionS.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -293,7 +293,7 @@ class TransitionTest {
         )
         val bearingS = transitionS.bearingDegrees
 
-        val transitionSW = Transition()
+        val transitionSW = GPSFilterKalmanTransition()
         transitionSW.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -302,7 +302,7 @@ class TransitionTest {
         )
         val bearingSW = transitionSW.bearingDegrees
 
-        val transitionW = Transition()
+        val transitionW = GPSFilterKalmanTransition()
         transitionW.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
@@ -311,7 +311,7 @@ class TransitionTest {
         )
         val bearingW = transitionW.bearingDegrees
 
-        val transitionNW = Transition()
+        val transitionNW = GPSFilterKalmanTransition()
         transitionNW.setCurrentState(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )

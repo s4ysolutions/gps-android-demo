@@ -2,12 +2,12 @@ package s4y.demo.mapsdksdemo.gps.filters.kalman.data
 
 import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
-import s4y.demo.mapsdksdemo.gps.filters.kalman.Transition
+import s4y.demo.mapsdksdemo.gps.filters.kalman.GPSFilterKalmanTransition
 import kotlin.math.sqrt
 
 sealed class StateVector private constructor() {
     abstract val vectorMeters: DoubleArray
-    abstract fun toGpsUpdate(transition: Transition): GPSUpdate
+    abstract fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate
     class LongitudeLatitude(override val vectorMeters: DoubleArray) :
         StateVector() {
         private val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
@@ -16,7 +16,7 @@ sealed class StateVector private constructor() {
             latitude
         )
 
-        override fun toGpsUpdate(transition: Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,
@@ -41,7 +41,7 @@ sealed class StateVector private constructor() {
                 .toFloat()
         }
 
-        override fun toGpsUpdate(transition: Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,
@@ -70,7 +70,7 @@ sealed class StateVector private constructor() {
         val accelerationX: Double = array[5]
         val accelerationY: Double = array[6]
          */
-        override fun toGpsUpdate(transition: Transition): GPSUpdate {
+        override fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,
                 longitude.degrees,

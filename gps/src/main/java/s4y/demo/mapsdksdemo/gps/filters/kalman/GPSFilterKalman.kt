@@ -22,7 +22,7 @@ abstract class GPSFilterKalman : GPSFilter() {
     }
 
     abstract val bearingImportant: Boolean
-    internal lateinit var transition: Transition
+    internal lateinit var transition: GPSFilterKalmanTransition
 
     private val proximityFilter = GPSFilterProximity.instance1m
 
@@ -93,7 +93,7 @@ abstract class GPSFilterKalman : GPSFilter() {
 
     override fun reset() {
         proximityFilter.reset()
-        transition = Transition()
+        transition = GPSFilterKalmanTransition()
         km = null
     }
 
@@ -109,7 +109,7 @@ abstract class GPSFilterKalman : GPSFilter() {
         )
     }
 
-    internal abstract fun measurementVectorFromGPSUpdate(transition: Transition): MeasurementVector
+    internal abstract fun measurementVectorFromGPSUpdate(transition: GPSFilterKalmanTransition): MeasurementVector
 
     abstract fun stateVectorFromEstimation(stateArray: DoubleArray): StateVector
 

@@ -115,7 +115,7 @@ class GPSFilterKalmanConstantAcceleration : GPSFilterKalman() {
         }
 
     override fun measurementVectorFromGPSUpdate(
-        transition: Transition
+        transition: GPSFilterKalmanTransition
     ): MeasurementVector =
         MeasurementVector.AccelerationBearing(transition)
 

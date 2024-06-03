@@ -99,7 +99,7 @@ class GPSFilterKalmanConstantVelocity : GPSFilterKalman() {
         }
 
     override fun measurementVectorFromGPSUpdate(
-        transition: Transition
+        transition: GPSFilterKalmanTransition
     ): MeasurementVector = MeasurementVector.VelocityBearing(transition)
 
     override fun stateVectorFromEstimation(stateArray: DoubleArray): StateVector =

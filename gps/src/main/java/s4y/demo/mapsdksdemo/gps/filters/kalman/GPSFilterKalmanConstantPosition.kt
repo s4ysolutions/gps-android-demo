@@ -80,7 +80,7 @@ class GPSFilterKalmanConstantPosition : GPSFilterKalman() {
             )
         }
 
-    override fun measurementVectorFromGPSUpdate(transition: Transition): MeasurementVector =
+    override fun measurementVectorFromGPSUpdate(transition: GPSFilterKalmanTransition): MeasurementVector =
         MeasurementVector.LongitudeLatitude(transition)
 
     override fun stateVectorFromEstimation(stateArray: DoubleArray): StateVector =

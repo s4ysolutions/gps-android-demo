@@ -7,7 +7,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-class Transition {
+class GPSFilterKalmanTransition {
     private lateinit var _currentLatitude: Units.Latitude
     private lateinit var _currentLongitude: Units.Longitude
 
