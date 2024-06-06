@@ -19,7 +19,4 @@ class GPSFilterNull : GPSFilter() {
 
     override fun reset() {
     }
-
-    override fun reset(gpsUpdate: GPSUpdate, dt: Double) {
-    }
 }

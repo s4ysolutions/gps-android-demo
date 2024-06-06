@@ -1,5 +1,4 @@
 package s4y.demo.mapsdksdemo.gps.filters
-
 import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
 import kotlin.math.abs
@@ -10,6 +9,7 @@ class GPSFilterProximity(val proximity: Units.Proximity) : GPSFilter() {
     companion object {
         val instance5m = GPSFilterProximity(Units.Proximity(5.0f))
         val instance1m = GPSFilterProximity(Units.Proximity(1.0f))
+        @Suppress("unused")
         val instance05m = GPSFilterProximity(Units.Proximity(0.5f))
     }
 
@@ -34,11 +34,9 @@ class GPSFilterProximity(val proximity: Units.Proximity) : GPSFilter() {
         }
     }
 
-    override fun reset() {
+    override fun reset(){
         initialized = false
         prevLat = 0.0
         prevLong = 0.0
     }
-
-    override fun reset(gpsUpdate: GPSUpdate, dt: Double) = reset()
 }

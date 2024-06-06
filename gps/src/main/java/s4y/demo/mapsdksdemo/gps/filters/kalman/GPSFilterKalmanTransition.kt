@@ -2,14 +2,16 @@ package s4y.demo.mapsdksdemo.gps.filters.kalman
 
 import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
+import s4y.demo.mapsdksdemo.gps.filters.kalman.data.StateVector
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
 class GPSFilterKalmanTransition {
-    private lateinit var _currentLatitude: Units.Latitude
-    private lateinit var _currentLongitude: Units.Longitude
+    private var _currentLatitude: Units.Latitude = Units.Latitude.fromDegrees(0.0)
+    private var _currentLongitude: Units.Longitude =
+        Units.Longitude.fromDegrees(0.0, _currentLatitude)
 
     private var _prevAccuracy: Float = 0.0f
     private var _currentAccuracy: Float = 0.0f
@@ -17,7 +19,7 @@ class GPSFilterKalmanTransition {
     private var _prevTimeStamp: Long = System.currentTimeMillis()
     private var _currentTimeStamp: Long = System.currentTimeMillis()
     private var _prevDtSec: Double = 0.0
-    private var _currentDtSec: Double = 0.0
+    private var _currentDtSec = 0.0
     private var _dtChanged: Boolean = false
     private var _prevBearing: Double = 0.0
     private var _currentBearing: Double = 0.0
@@ -36,10 +38,48 @@ class GPSFilterKalmanTransition {
     private var _currentVelocityY: Double = 0.0
 
     companion object {
-        private val PI2 = 2 * PI
+        private const val PI2 = 2 * PI
     }
 
-    fun setCurrentState(gpsUpdate: GPSUpdate) = synchronized(this) {
+    private fun updateLongitudeLatitude(longitude: Units.Longitude, latitude: Units.Latitude) {
+        _currentLatitude = latitude
+        _currentLongitude = longitude
+        _currentX = _currentLongitude.meters
+        _currentY = _currentLatitude.meters
+    }
+
+    private fun updateLongitudeLatitude(gpsUpdate: GPSUpdate) {
+        val lat = Units.Latitude.fromDegrees(gpsUpdate.latitude)
+        val lon = Units.Longitude.fromDegrees(gpsUpdate.longitude, lat)
+        updateLongitudeLatitude(lon, lat)
+    }
+
+    private fun updateLongitudeLatitude(estimation: StateVector) =
+        updateLongitudeLatitude(estimation.longitude, estimation.latitude)
+
+    private fun updateVelocity() {
+        _currentVelocityX = (_currentX - _prevX) / _currentDtSec
+        if (_currentVelocityX > 60)
+            _currentVelocityX = 60.0
+        _currentVelocityY = (_currentY - _prevY) / _currentDtSec
+        if (_currentVelocityY > 60)
+            _currentVelocityY = 60.0
+    }
+
+    private fun updateBearing() {
+        val dy = _currentY - _prevY
+        val dx = _currentX - _prevX
+        if (abs(dx) > 3 || abs(dy) > 3) {
+            _currentBearing =
+                if (dx >= 0)
+                    atan2(dx, dy)
+                else
+                    PI2 + atan2(dx, dy)
+        }
+        _bearingChanged = abs(_currentBearing - _prevBearing) > 1.0
+    }
+
+    fun addMeasurement(gpsUpdate: GPSUpdate) = synchronized(this) {
         _n++
 
         // save prev values if not the first update
@@ -59,32 +99,19 @@ class GPSFilterKalmanTransition {
         // save current values
         _currentTimeStamp = gpsUpdate.ts
         _currentAccuracy = gpsUpdate.accuracy
-        _currentBearing = gpsUpdate.bearing
 
-        val lat = Units.Latitude.fromDegrees(gpsUpdate.latitude)
-        _currentLatitude = Units.Latitude.fromDegrees(gpsUpdate.latitude)
-        _currentLongitude = Units.Longitude.fromDegrees(gpsUpdate.longitude, lat)
-        _currentX = _currentLongitude.meters
-        _currentY = _currentLatitude.meters
+        updateLongitudeLatitude(gpsUpdate)
 
         if (_n > 1) {
             // from the 2nd update bearing is calculated from x,y
-            val dy = _currentY - _prevY
-            val dx = _currentX - _prevX
-            // _currentBearing = atan2(dy, dx) - 90
-            _currentBearing = if (dx >= 0)
-                atan2(dx, dy)
-            else
-                PI2 + atan2(dx, dy)
+            updateBearing()
 
             // detect if values changed
             _accuracyChanged = abs(_currentAccuracy - _prevAccuracy) > 1.0f
-            _bearingChanged = abs(_currentBearing - _prevBearing) > 1.0
 
             // calculate differences
             _currentDtSec = (_currentTimeStamp - _prevTimeStamp).toDouble() / 1000
-            _currentVelocityX = (_currentX - _prevX) / _currentDtSec
-            _currentVelocityY = (_currentY - _prevY) / _currentDtSec
+            updateVelocity()
 
             if (_n > 2) {
                 // detect if differences changed
@@ -103,6 +130,22 @@ class GPSFilterKalmanTransition {
         _bearingVariance = sqrt(_bearingVariance2)
     }
 
+    fun updateWithEstimation(estimation: StateVector) = synchronized(this) {
+        updateLongitudeLatitude(estimation)
+        if (_n > 1) {
+            updateVelocity()
+            updateBearing()
+        }
+    }
+
+    fun updateWithEstimation(update: GPSUpdate) = synchronized(this) {
+        updateLongitudeLatitude(update)
+        if (_n > 1) {
+            updateVelocity()
+            updateBearing()
+        }
+    }
+
     val latitude: Units.Latitude get() = _currentLatitude
     val longitude: Units.Longitude get() = _currentLongitude
     val metersX: Double get() = _currentX
@@ -117,15 +160,29 @@ class GPSFilterKalmanTransition {
     val velocity: Units.Velocity
         get() = Units.Velocity(
             _currentVelocityX, _currentVelocityY
-                    /*
-            sqrt(_currentVelocityX * _currentVelocityX + _currentVelocityY * _currentVelocityY),
-            Units.Bearing.fromRadians(_currentBearing),
-            longitude,
-            latitude
-                     */
+            /*
+    sqrt(_currentVelocityX * _currentVelocityX + _currentVelocityY * _currentVelocityY),
+    Units.Bearing.fromRadians(_currentBearing),
+    longitude,
+    latitude
+             */
         )
     val velocityX: Double get() = _currentVelocityX
     val velocityY: Double get() = _currentVelocityY
-    val accelerationX: Double get() = if (dtSec == 0.0 || _n < 3) 0.0 else (_currentVelocityX - _prevVelocityX) / dtSec
-    val accelerationY: Double get() = if (dtSec == 0.0 || _n < 3) 0.0 else (_currentVelocityY - _prevVelocityY) / dtSec
+    val accelerationX: Double
+        get() = let {
+            val acc =
+                if (dtSec == 0.0 || _n < 3) 0.0 else (_currentVelocityX - _prevVelocityX) / dtSec
+            if (acc > 5) 5.0 else acc
+        }
+    val accelerationY: Double
+        get() = let {
+            val acc =
+                if (dtSec == 0.0 || _n < 3) 0.0 else (_currentVelocityY - _prevVelocityY) / dtSec
+            if (acc > 5) 5.0 else acc
+        }
+
+    val distanceMeters: Double get() = sqrt((_currentX - _prevX) * (_currentX - _prevX) + (_currentY - _prevY) * (_currentY - _prevY))
+
+    val count: Int get() = _n
 }

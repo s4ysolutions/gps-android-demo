@@ -1,14 +1,60 @@
-package s4y.demo.mapsdksdemo.gps.filters.kalman
+package s4y.demo.mapsdksdemo.gps.filters.kalman.gpsfilterkalmantransition
 
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import s4y.demo.mapsdksdemo.gps.GPSUpdate
 import s4y.demo.mapsdksdemo.gps.data.Units
+import s4y.demo.mapsdksdemo.gps.filters.kalman.GPSFilterKalmanTransition
 import kotlin.math.sqrt
 
-class GPSFilterKalmanTransitionTest {
+class AddMeasurementTest {
+    @Test
+    fun transition_shouldNotIncrementCount() {
+        // Arrange
+        val transition = GPSFilterKalmanTransition()
+        val counters = IntArray(4) { 0 }
+        // Act
+        counters[0] = transition.count
+        transition.updateWithEstimation(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[1] = transition.count
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[2] = transition.count
+        transition.updateWithEstimation(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[3] = transition.count
+        // Assert
+        assertArrayEquals(intArrayOf(0, 0, 1, 1), counters)
+    }
+    @Test
+    fun transition_shouldIncrementCount_whenAddMeasurement() {
+        // Arrange
+        val transition = GPSFilterKalmanTransition()
+        val counters = IntArray(4) { 0 }
+        // Act
+        counters[0] = transition.count
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[1] = transition.count
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[2] = transition.count
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
+        )
+        counters[3] = transition.count
+        // Assert
+        assertArrayEquals(intArrayOf(0, 1, 2, 3), counters)
+    }
     @Test
     fun transition_shouldCalculateDt() {
         // Arrange
@@ -16,22 +62,22 @@ class GPSFilterKalmanTransitionTest {
         // Act
         val dt0 = transition.dtSec
         val dtChanged0 = transition.dtChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 1000)
         )
         val dt1 = transition.dtSec
         val dtChanged1 = transition.dtChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 3000)
         )
         val dt2 = transition.dtSec
         val dtChanged2 = transition.dtChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 5000)
         )
         val dt3 = transition.dtSec
         val dtChanged3 = transition.dtChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 0.0, 8000)
         )
         val dt4 = transition.dtSec
@@ -55,19 +101,19 @@ class GPSFilterKalmanTransitionTest {
         val transition = GPSFilterKalmanTransition()
         // Act
         val accuracy0 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 1000)
         )
         val accuracy1 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 3000)
         )
         val accuracy2 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 5000)
         )
         val accuracy3 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 2.1f, 0.0, 5000)
         )
         val accuracy4 = transition.accuracyChanged
@@ -85,19 +131,19 @@ class GPSFilterKalmanTransitionTest {
         val transition = GPSFilterKalmanTransition()
         // Act
         val accuracy0 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 1000)
         )
         val accuracy1 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 2.1f, 0.0, 3000)
         )
         val accuracy2 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 5000)
         )
         val accuracy3 = transition.accuracyChanged
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(0.0, 0.0, 0.0f, 1.0f, 0.0, 5000)
         )
         val accuracy4 = transition.accuracyChanged
@@ -115,7 +161,7 @@ class GPSFilterKalmanTransitionTest {
         val lat0 = Units.Latitude.fromDegrees(45.0)
         val lon0 = Units.Longitude.fromDegrees(45.0, lat0)
         // Act
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
         val x = transition.metersX
@@ -132,7 +178,7 @@ class GPSFilterKalmanTransitionTest {
         val lat0 = Units.Latitude.fromDegrees(45.0)
         val lon0 = Units.Longitude.fromDegrees(45.0, lat0)
         // Act
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
         val lat1 = transition.latitude
@@ -140,7 +186,7 @@ class GPSFilterKalmanTransitionTest {
         val x1 = transition.metersX
         val y1 = transition.metersY
 
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat0.degrees + 1, lon0.degrees + 1, 0.0f, 1.0f, 0.0, 1000)
         )
         val lat2 = transition.latitude
@@ -170,12 +216,12 @@ class GPSFilterKalmanTransitionTest {
         // Act
         val x0 = transition.metersX
         val y0 = transition.metersY
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat1.degrees, lon1.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
         val x1 = transition.metersX
         val y1 = transition.metersY
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat2.degrees, lon2.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val x2 = transition.metersX
@@ -199,11 +245,11 @@ class GPSFilterKalmanTransitionTest {
         val lat1 = Units.Latitude.fromDegrees(46.0)
         val lon1 = Units.Longitude.fromDegrees(46.0, lat1)
         // Act
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
         val velocity1 = transition.velocity
-        transition.setCurrentState(
+        transition.addMeasurement(
             GPSUpdate(lat1.degrees, lon1.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val velocity2 = transition.velocity
@@ -249,73 +295,73 @@ class GPSFilterKalmanTransitionTest {
         val lonNW = Units.Longitude.fromDegrees(-1.0, latNE)
         // Act
         val transitionN = GPSFilterKalmanTransition()
-        transitionN.setCurrentState(
+        transitionN.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionN.setCurrentState(
+        transitionN.addMeasurement(
             GPSUpdate(latN.degrees, lonN.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingN = transitionN.bearingDegrees
 
         val transitionNE = GPSFilterKalmanTransition()
-        transitionNE.setCurrentState(
+        transitionNE.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionNE.setCurrentState(
+        transitionNE.addMeasurement(
             GPSUpdate(latNE.degrees, lonNE.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingNE = transitionNE.bearingDegrees
 
         val transitionE = GPSFilterKalmanTransition()
-        transitionE.setCurrentState(
+        transitionE.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionE.setCurrentState(
+        transitionE.addMeasurement(
             GPSUpdate(latE.degrees, lonE.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingE = transitionE.bearingDegrees
 
         val transitionSE = GPSFilterKalmanTransition()
-        transitionSE.setCurrentState(
+        transitionSE.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionSE.setCurrentState(
+        transitionSE.addMeasurement(
             GPSUpdate(latSE.degrees, lonSE.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingSE = transitionSE.bearingDegrees
 
         val transitionS = GPSFilterKalmanTransition()
-        transitionS.setCurrentState(
+        transitionS.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionS.setCurrentState(
+        transitionS.addMeasurement(
             GPSUpdate(latS.degrees, lonS.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingS = transitionS.bearingDegrees
 
         val transitionSW = GPSFilterKalmanTransition()
-        transitionSW.setCurrentState(
+        transitionSW.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionSW.setCurrentState(
+        transitionSW.addMeasurement(
             GPSUpdate(latSW.degrees, lonSW.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingSW = transitionSW.bearingDegrees
 
         val transitionW = GPSFilterKalmanTransition()
-        transitionW.setCurrentState(
+        transitionW.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionW.setCurrentState(
+        transitionW.addMeasurement(
             GPSUpdate(latW.degrees, lonW.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingW = transitionW.bearingDegrees
 
         val transitionNW = GPSFilterKalmanTransition()
-        transitionNW.setCurrentState(
+        transitionNW.addMeasurement(
             GPSUpdate(lat0.degrees, lon0.degrees, 0.0f, 1.0f, 0.0, 1000)
         )
-        transitionNW.setCurrentState(
+        transitionNW.addMeasurement(
             GPSUpdate(latNW.degrees, lonNW.degrees, 0.0f, 1.0f, 0.0, 3000)
         )
         val bearingNW = transitionNW.bearingDegrees
@@ -328,5 +374,24 @@ class GPSFilterKalmanTransitionTest {
         assertEquals(225.0, bearingSW, 1e-2)
         assertEquals(270.0, bearingW)
         assertEquals(315.0, bearingNW, 1e-2)
+    }
+
+    @Test
+    fun transition_shouldHandleZeroOffset() {
+        val transition = GPSFilterKalmanTransition()
+        // Act
+        val bearing0 = transition.bearingDegrees
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 180.0, 1000)
+        )
+        val bearing1 = transition.bearingDegrees
+        transition.addMeasurement(
+            GPSUpdate(0.0, 0.0, 0.0f, 0.0f, 180.0, 2000)
+        )
+        val bearing2 = transition.bearingDegrees
+        // Assert
+        assertEquals(0.0, bearing0)
+        assertEquals(180.0, bearing1)
+        assertEquals(180.0, bearing2)
     }
 }

@@ -7,11 +7,13 @@ import kotlin.math.sqrt
 
 sealed class StateVector private constructor() {
     abstract val vectorMeters: DoubleArray
+    abstract val latitude: Units.Latitude
+    abstract val longitude: Units.Longitude
     abstract fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate
     class LongitudeLatitude(override val vectorMeters: DoubleArray) :
         StateVector() {
-        private val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
-        private val longitude: Units.Longitude = Units.Longitude.fromMeters(
+        override val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
+        override val longitude: Units.Longitude = Units.Longitude.fromMeters(
             vectorMeters[0],
             latitude
         )
@@ -32,13 +34,15 @@ sealed class StateVector private constructor() {
         /**
          * [longitude, latitude, velocityX, velocityY]
          */
-        private val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
-        private val longitude: Units.Longitude =
+        override val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
+        override val longitude: Units.Longitude =
             Units.Longitude.fromMeters(vectorMeters[0], latitude)
 
+        val velocityX get() = vectorMeters[2]
+        val velocityY get() = vectorMeters[3]
+
         private val velocity by lazy {
-            (sqrt(vectorMeters[2] * vectorMeters[2] + vectorMeters[3] * vectorMeters[3]) * 3.6)
-                .toFloat()
+            (sqrt(velocityX * velocityX + velocityY * velocityY) * 3.6).toFloat()
         }
 
         override fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate {
@@ -57,19 +61,17 @@ sealed class StateVector private constructor() {
         /**
          * [longitude, latitude, velocityX, velocityY, accelerationX, accelerationY]
          */
-        private val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
-        private val longitude: Units.Longitude =
+        override val latitude: Units.Latitude = Units.Latitude.fromMeters(vectorMeters[1])
+        override val longitude: Units.Longitude =
             Units.Longitude.fromMeters(vectorMeters[0], latitude)
+        val velocityX get() = vectorMeters[2]
+        val velocityY get() = vectorMeters[3]
         private val velocity by lazy {
-            (sqrt(vectorMeters[2] * vectorMeters[2] + vectorMeters[3] * vectorMeters[3]) * 3.6)
-                .toFloat()
+            (sqrt(velocityX * velocityX + velocityY * velocityY) * 3.6).toFloat()
         }
 
-        /*
-         these 2 are not needed for the GPSUpdate, so we do not store them
-        val accelerationX: Double = array[5]
-        val accelerationY: Double = array[6]
-         */
+        val accelerationX: Double = vectorMeters[4]
+        val accelerationY: Double = vectorMeters[5]
         override fun toGpsUpdate(transition: GPSFilterKalmanTransition): GPSUpdate {
             return GPSUpdate(
                 latitude.degrees,

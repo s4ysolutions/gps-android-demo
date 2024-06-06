@@ -12,7 +12,6 @@ import s4y.demo.mapsdksdemo.gps.filters.kalman.data.MeasurementVector
 import s4y.demo.mapsdksdemo.gps.filters.kalman.data.StateVector
 import s4y.demo.mapsdksdemo.gps.data.Units
 import s4y.demo.mapsdksdemo.gps.filters.GPSFilter
-import s4y.demo.mapsdksdemo.gps.filters.GPSFilterProximity
 
 abstract class GPSFilterKalman : GPSFilter() {
     private var logger: FilterLogger? = null
@@ -21,33 +20,50 @@ abstract class GPSFilterKalman : GPSFilter() {
         fun e(message: String, th: Throwable)
     }
 
-    abstract val bearingImportant: Boolean
+    // abstract val bearingImportant: Boolean
     internal lateinit var transition: GPSFilterKalmanTransition
-
-    private val proximityFilter = GPSFilterProximity.instance1m
-
     private var km: KalmanFilter? = null
     private var processModel: ProcessModel? = null
     private var measurementModel: MeasurementModel? = null
     internal val kalmanFilter: KalmanFilter get() = km!!
 
-    // A - state transition matrix
+    // A - transitionMatrix - state estimation, operates on previous state
     abstract fun createAMatrix(dt: Double, stateVector: StateVector): RealMatrix
+    private fun updateAMatrix(dt: Double, x0: StateVector) = processModel?.let { pm ->
+        val a = createAMatrix(dt, x0)
+        a.data.forEachIndexed { i, row ->
+            row.forEachIndexed { j, value ->
+                pm.stateTransitionMatrix.setEntry(i, j, value)
+            }
+        }
+    }
 
-    // B - control input matrix - no input
+    // B - controlMatrix - control input, operates on control vector
+    //                     and the result is added to the estimated state
     open fun createBMatrix(): RealMatrix? = null
 
-    // Assume the process error depends on the time
     // Q - process noise covariance matrix
+    //     to be added to the process error covariance matrix
     abstract fun createQMatrix(dt: Double, stateVector: StateVector): RealMatrix
+    private fun updateQMatrix(dt: Double, x0: StateVector) = processModel?.let { pm ->
+        val q = createQMatrix(dt, x0)
+        q.data.forEachIndexed { i, row ->
+            row.forEachIndexed { j, value ->
+                pm.processNoise.setEntry(i, j, value)
+            }
+        }
+    }
 
-    // P - Filter error covariance matrix
-    abstract fun createP0Matrix(dt: Double): RealMatrix?
+    // P0 - Initial process error covariance matrix
+    //      default is Q
+    open fun createP0Matrix(dt: Double): RealMatrix? = null
 
     // H - measurement matrix
     abstract fun createHMatrix(): RealMatrix
 
     // R - measurement noise covariance matrix
+    //    to be added to be used as an addition in the calculation of S matrix
+    //    where S matrix = H * P * H^T + R
     abstract fun createRMatrix(accuracy: Units.Accuracy): RealMatrix
     private fun updateRMatrix(accuracy: Units.Accuracy) = measurementModel?.let { mm ->
         val r = createRMatrix(accuracy)
@@ -60,15 +76,14 @@ abstract class GPSFilterKalman : GPSFilter() {
         }
     }
 
+
     private fun createProcessModel(
         dt: Double,
         x0: StateVector,
         p0: RealMatrix?
     ): ProcessModel {
         val a = createAMatrix(dt, x0)
-
         val b = createBMatrix()
-
         val q = createQMatrix(dt, x0)
 
         return DefaultProcessModel(a, b, q, ArrayRealVector(x0.vectorMeters), p0)
@@ -92,70 +107,60 @@ abstract class GPSFilterKalman : GPSFilter() {
     }
 
     override fun reset() {
-        proximityFilter.reset()
         transition = GPSFilterKalmanTransition()
         km = null
     }
 
-    override fun reset(gpsUpdate: GPSUpdate, dt: Double) {
-        reset()
-
-        val x0 = measurementVectorFromGPSUpdate(transition).state
-        val p0 = createP0Matrix(dt)
-
-        updateKalmanFilter(
-            createProcessModel(dt, x0, p0),
-            createMeasurementModel(Units.Accuracy(gpsUpdate))
-        )
-    }
-
-    internal abstract fun measurementVectorFromGPSUpdate(transition: GPSFilterKalmanTransition): MeasurementVector
+    // internal abstract fun measurementVectorFromGPSUpdate(transition: GPSFilterKalmanTransition): MeasurementVector
+    internal abstract fun measurementVectorFromLastTransition(transition: GPSFilterKalmanTransition): MeasurementVector
 
     abstract fun stateVectorFromEstimation(stateArray: DoubleArray): StateVector
 
     private val lockApply = Any()
 
-    override fun apply(gpsUpdate: GPSUpdate): GPSUpdate =
+    override fun apply(gpsUpdate: GPSUpdate): GPSUpdate? =
         synchronized(lockApply) {
+            transition.addMeasurement(gpsUpdate)
+            val z = measurementVectorFromLastTransition(transition)
+
             km?.let { km ->
                 // Kalman loop
                 try {
-                    transition.setCurrentState(gpsUpdate)
-                    val z = measurementVectorFromGPSUpdate(transition)
-                    val x0 = stateVectorFromEstimation(km.stateEstimation)
+                    // just to save battery a bit
+                    if (transition.distanceMeters < 1)
+                        return null
 
                     if (transition.accuracyChanged) {
                         updateRMatrix(transition.accuracy)
                     }
 
-                    if (transition.accuracyChanged || transition.dtChanged) {
+                    if (transition.dtChanged) {
                         val dt = transition.dtSec
-                        updateKalmanFilter(
-                            createProcessModel(
-                                dt,
-                                x0,
-                                processModel?.processNoise ?: createP0Matrix(dt)
-                            ),
-                            measurementModel ?: createMeasurementModel(
-                                transition.accuracy
-                            )
-                        )
+                        val x0 = stateVectorFromEstimation(km.stateEstimation)
+                        updateAMatrix(dt, x0)
+                        updateQMatrix(dt, x0)
                     }
 
                     km.predict()
                     km.correct(z.state.vectorMeters)
 
-                    val x = stateVectorFromEstimation(km.stateEstimation)
-                    //x.toGpsUpdate(z)
-                    proximityFilter.apply(x.toGpsUpdate(transition))
+                    val estimation = stateVectorFromEstimation(km.stateEstimation)
+                    transition.updateWithEstimation(estimation)
+
+                    estimation.toGpsUpdate(transition)
                 } catch (e: Exception) {
                     logger?.e("KalmanFilter.apply ${e.message}", e)
                     gpsUpdate
                 }
             } ?: run {
-                reset(gpsUpdate)
+                val x0 = z.state
+                val p0 = createP0Matrix(defaultDt)
+
+                updateKalmanFilter(
+                    createProcessModel(defaultDt, x0, p0),
+                    createMeasurementModel(Units.Accuracy(gpsUpdate))
+                )
                 gpsUpdate
             }
         }
-
 }

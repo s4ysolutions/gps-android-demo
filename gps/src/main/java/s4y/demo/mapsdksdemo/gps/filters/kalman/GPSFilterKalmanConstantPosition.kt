@@ -11,18 +11,17 @@ import s4y.demo.mapsdksdemo.gps.data.Units
  * StateVector is [longitude, latitude]
  * Process equation is x = x0
  */
-class GPSFilterKalmanConstantPosition : GPSFilterKalman() {
+class GPSFilterKalmanConstantPosition(private val maxSpeed: Double) : GPSFilterKalman() {
     companion object {
-        val instance = GPSFilterKalmanConstantPosition()
+        // GPS variance is about 10 meters
+        // so the process error 30 meters
+        // makes GPS data to have ~3 times more weight than the process
+        val instance = GPSFilterKalmanConstantPosition(1.4)
     }
 
     override val name: String = "Kalman (constant position)"
 
-    override val bearingImportant: Boolean = false
-
-    /**
-     * A - state transition matrix
-     */
+    // A - state transition matrix
     override fun createAMatrix(dt: Double, stateVector: StateVector): RealMatrix =
         Array2DRowRealMatrix(
             arrayOf(
@@ -31,14 +30,13 @@ class GPSFilterKalmanConstantPosition : GPSFilterKalman() {
             )
         )
 
-    /**
-     * Q - Process noise covariance matrix
-     */
+    // Q - process noise covariance matrix
     override fun createQMatrix(dt: Double, stateVector: StateVector): RealMatrix {
+        // Keep the position as much as possible
         // in fact the process is extremely noisy
-        // lets assume the speed is 5km/h = 1.5m/s
+        // lets assume the speed is at least 5km/h = 1.5m/s
         // so the position is changed by 3 meters * dt / 1000
-        val variance = 1.5 * dt
+        val variance = maxSpeed * dt
         val covariance = variance * variance
 
         return Array2DRowRealMatrix(
@@ -50,19 +48,15 @@ class GPSFilterKalmanConstantPosition : GPSFilterKalman() {
     }
 
     override fun createP0Matrix(dt: Double): RealMatrix {
-        // the same as Q
-        val variance = 1.5 * dt
-        val covariance = variance * variance
-
         return Array2DRowRealMatrix(
             arrayOf(
-                doubleArrayOf(covariance, 0.0),
-                doubleArrayOf(0.0, covariance)
+                doubleArrayOf(0.0, 0.0),
+                doubleArrayOf(0.0, 0.0)
             )
         )
     }
 
-    // measurements
+    // H - measurement matrix
     override fun createHMatrix(): RealMatrix = Array2DRowRealMatrix(
         arrayOf(
             doubleArrayOf(1.0, 0.0),
@@ -70,17 +64,19 @@ class GPSFilterKalmanConstantPosition : GPSFilterKalman() {
         )
     )
 
+    // R - measurement noise covariance matrix
     override fun createRMatrix(accuracy: Units.Accuracy): RealMatrix =
+        // derived from the accuracy of GPS
         with(accuracy.meters) {
             Array2DRowRealMatrix(
                 arrayOf(
-                    doubleArrayOf(varianceXX, 0.0),
-                    doubleArrayOf(0.0, varianceYY)
+                    doubleArrayOf(covarianceXX, 0.0),
+                    doubleArrayOf(0.0, covarianceYY)
                 )
             )
         }
 
-    override fun measurementVectorFromGPSUpdate(transition: GPSFilterKalmanTransition): MeasurementVector =
+    override fun measurementVectorFromLastTransition(transition: GPSFilterKalmanTransition): MeasurementVector =
         MeasurementVector.LongitudeLatitude(transition)
 
     override fun stateVectorFromEstimation(stateArray: DoubleArray): StateVector =

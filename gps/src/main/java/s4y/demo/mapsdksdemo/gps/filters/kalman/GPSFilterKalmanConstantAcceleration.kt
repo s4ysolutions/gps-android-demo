@@ -17,8 +17,6 @@ class GPSFilterKalmanConstantAcceleration : GPSFilterKalman() {
 
     override val name: String = "Kalman (constant acceleration)"
 
-    override val bearingImportant: Boolean = true
-
     /**
      * Process equation is:
      * x = x0 + velocityX * dt + 0.5 * accelerationX * dt^2;
@@ -54,23 +52,30 @@ class GPSFilterKalmanConstantAcceleration : GPSFilterKalman() {
         if (stateVector !is StateVector.Acceleration)
             throw IllegalArgumentException("StateVector is not VelocityBearing")
 
-        // max acceleration is 4m/s^2 ~3
-        // so covariance is 3^2 = 9.0
+        val varA = 1.0 // acceleration expected to do not change more than 1m/s^2
+        val cvA = varA * varA
+
+        val varVx = stateVector.accelerationX * dt
+        val cVx = varVx * varVx
+
+        val varVy = stateVector.accelerationY * dt
+        val cVy = varVy * varVy
+
+        val varX = stateVector.velocityX * dt + 0.5 * stateVector.accelerationX * dt * dt
+        val cvX = varX * varX
+        val varY = stateVector.velocityY * dt + 0.5 * stateVector.accelerationY * dt * dt
+        val cvY = varY * varY
 
         return Array2DRowRealMatrix(
             arrayOf(
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 9.0, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 9.0),
+                doubleArrayOf(cvX, 0.0, 0.0, 0.0, 0.0, 0.0),
+                doubleArrayOf(0.0, cvY, 0.0, 0.0, 0.0, 0.0),
+                doubleArrayOf(0.0, 0.0, cVx, 0.0, 0.0, 0.0),
+                doubleArrayOf(0.0, 0.0, 0.0, cVy, 0.0, 0.0),
+                doubleArrayOf(0.0, 0.0, 0.0, 0.0, cvA, 0.0),
+                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, cvA),
             )
         )
-    }
-
-    override fun createP0Matrix(dt: Double): RealMatrix? {
-        return null
     }
 
     /**
@@ -92,29 +97,39 @@ class GPSFilterKalmanConstantAcceleration : GPSFilterKalman() {
      */
     override fun createRMatrix(accuracy: Units.Accuracy): RealMatrix =
         with(accuracy.meters) {
-            val vxx = varianceXX * varianceXX
-            val vyy = varianceYY * varianceYY
-            val vvx = vxx / (if (transition.dtSec == 0.0) defaultDt else transition.dtSec)
-            val vvy = vyy / (if (transition.dtSec == 0.0) defaultDt else transition.dtSec)
-            val dt2 = if (transition.dtSec == 0.0)
-                defaultDt * defaultDt
-            else
-                transition.dtSec * transition.dtSec
-            val vax = vxx / dt2
-            val vay = vyy / dt2
-            Array2DRowRealMatrix(
-                arrayOf(
-                    doubleArrayOf(vxx, 0.0, 0.0, 0.0, 0.0, 0.0),
-                    doubleArrayOf(0.0, vyy, 0.0, 0.0, 0.0, 0.0),
-                    doubleArrayOf(0.0, 0.0, vvx, 0.0, 0.0, 0.0),
-                    doubleArrayOf(0.0, 0.0, 0.0, vvy, 0.0, 0.0),
-                    doubleArrayOf(0.0, 0.0, 0.0, 0.0, vax, 0.0),
-                    doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, vay),
+            val vxx = covarianceXX * covarianceXX
+            val vyy = covarianceYY * covarianceYY
+            if (transition.dtSec != 0.0) {
+                Array2DRowRealMatrix(
+                    arrayOf(
+                        doubleArrayOf(vxx, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, vyy, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                    )
                 )
-            )
+            } else {
+                val vvx = vxx / transition.dtSec
+                val vvy = vyy / transition.dtSec
+                val dt2 = transition.dtSec * transition.dtSec
+                val vax = vxx / dt2
+                val vay = vyy / dt2
+                Array2DRowRealMatrix(
+                    arrayOf(
+                        doubleArrayOf(vxx, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, vyy, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, vvx, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, vvy, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, vax, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, vay),
+                    )
+                )
+            }
         }
 
-    override fun measurementVectorFromGPSUpdate(
+    override fun measurementVectorFromLastTransition(
         transition: GPSFilterKalmanTransition
     ): MeasurementVector =
         MeasurementVector.AccelerationBearing(transition)

@@ -30,5 +30,5 @@ abstract class GPSFilter(val defaultDt: Double = DEFAULT_DT) {
 
 
     abstract fun reset()
-    abstract fun reset(gpsUpdate: GPSUpdate, dt: Double = defaultDt)
+    // abstract fun reset(gpsUpdate: GPSUpdate, dt: Double = defaultDt)
 }

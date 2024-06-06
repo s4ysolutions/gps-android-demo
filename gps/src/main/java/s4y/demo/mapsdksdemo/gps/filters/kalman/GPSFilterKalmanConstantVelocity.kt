@@ -17,7 +17,7 @@ class GPSFilterKalmanConstantVelocity : GPSFilterKalman() {
 
     override val name: String = "Kalman (constant velocity)"
 
-    override val bearingImportant: Boolean = true
+    // override val bearingImportant: Boolean = true
 
     /**
      * Process equation is:
@@ -48,23 +48,33 @@ class GPSFilterKalmanConstantVelocity : GPSFilterKalman() {
         if (stateVector !is StateVector.Velocity)
             throw IllegalArgumentException("StateVector is not VelocityBearing")
 
-        // exp. acceleration is 1m/s^2,
-        // so the velocity can change by 1 * dt
-        val variance = 0.1 // dt //1.0 * dt TODO: check
-        val cov = variance * variance
+        val maxA = 4 // m/s^2
+        val varV = maxA * dt
+        val covV = varV * varV
 
+        val varX = stateVector.velocityX * dt
+        val varY = stateVector.velocityY * dt
+        val covX = varX * varX
+        val covY = varY * varY
+
+        return Array2DRowRealMatrix(
+            arrayOf(
+                doubleArrayOf(covX, 0.0, 0.0, 0.0),
+                doubleArrayOf(0.0, covY, 0.0, 0.0),
+                doubleArrayOf(0.0, 0.0, covV, 0.0),
+                doubleArrayOf(0.0, 0.0, 0.0, covV),
+            )
+        )
+    }
+    override fun createP0Matrix(dt: Double): RealMatrix {
         return Array2DRowRealMatrix(
             arrayOf(
                 doubleArrayOf(0.0, 0.0, 0.0, 0.0),
                 doubleArrayOf(0.0, 0.0, 0.0, 0.0),
-                doubleArrayOf(0.0, 0.0, cov, 0.0),
-                doubleArrayOf(0.0, 0.0, 0.0, cov),
+                doubleArrayOf(0.0, 0.0, 0.0, 0.0),
+                doubleArrayOf(0.0, 0.0, 0.0, 0.0),
             )
         )
-    }
-
-    override fun createP0Matrix(dt: Double): RealMatrix? {
-        return null
     }
 
     /**
@@ -72,8 +82,8 @@ class GPSFilterKalmanConstantVelocity : GPSFilterKalman() {
      */
     override fun createHMatrix(): RealMatrix = Array2DRowRealMatrix(
         arrayOf(
-            doubleArrayOf(0.1, 0.0, 0.0, 0.0),
-            doubleArrayOf(0.0, 0.1, 0.0, 0.0),
+            doubleArrayOf(1.0, 0.0, 0.0, 0.0),
+            doubleArrayOf(0.0, 1.0, 0.0, 0.0),
             doubleArrayOf(0.0, 0.0, 1.0, 0.0),
             doubleArrayOf(0.0, 0.0, 0.0, 1.0),
         )
@@ -84,21 +94,32 @@ class GPSFilterKalmanConstantVelocity : GPSFilterKalman() {
      */
     override fun createRMatrix(accuracy: Units.Accuracy): RealMatrix =
         with(accuracy.meters) {
-            val vxx = varianceXX * varianceXX
-            val vyy = varianceYY * varianceYY
-            val vvx = vxx / (if (transition.dtSec == 0.0) defaultDt else transition.dtSec)
-            val vvy = vyy / (if (transition.dtSec == 0.0) defaultDt else transition.dtSec)
-            Array2DRowRealMatrix(
-                arrayOf(
-                    doubleArrayOf(vxx, 0.0, 0.0, 0.0),
-                    doubleArrayOf(0.0, vyy, 0.0, 0.0),
-                    doubleArrayOf(0.0, 0.0, vvx, 0.0),
-                    doubleArrayOf(0.0, 0.0, 0.0, vvy),
+            val vxx = covarianceXX
+            val vyy = covarianceYY
+            if (transition.dtSec != 0.0) {
+                Array2DRowRealMatrix(
+                    arrayOf(
+                        doubleArrayOf(vxx, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, vyy, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0),
+                    )
                 )
-            )
+            } else {
+                val vvx = vxx / transition.dtSec
+                val vvy = vyy / transition.dtSec
+                Array2DRowRealMatrix(
+                    arrayOf(
+                        doubleArrayOf(vxx, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, vyy, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, vvx, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, vvy),
+                    )
+                )
+            }
         }
 
-    override fun measurementVectorFromGPSUpdate(
+    override fun measurementVectorFromLastTransition(
         transition: GPSFilterKalmanTransition
     ): MeasurementVector = MeasurementVector.VelocityBearing(transition)
 

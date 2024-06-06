@@ -25,29 +25,29 @@ sealed class Units {
 
         interface XYVariances {
             val accuracy: Float
-            val varianceXX: Double
-            val varianceYY: Double
-            val varianceXY: Double
-            val varianceYX: Double
+            val covarianceXX: Double
+            val covarianceYY: Double
+            val covarianceXY: Double
+            val covarianceYX: Double
         }
 
         val meters = object : XYVariances {
             override val accuracy: Float = gpsAccuracy
-            private val variance: Double = (gpsAccuracy * gpsAccuracy).toDouble()
-            override val varianceXX: Double = variance
-            override val varianceYY: Double = variance
-            override val varianceXY: Double = variance
-            override val varianceYX: Double = variance
+            private val covariance: Double = (gpsAccuracy * gpsAccuracy).toDouble()
+            override val covarianceXX: Double = covariance
+            override val covarianceYY: Double = covariance
+            override val covarianceXY: Double = covariance
+            override val covarianceYX: Double = covariance
         }
 
         val degrees = object : XYVariances {
             private val gpsAccuracyDegrees = gpsAccuracy.toDouble() / mPer1DegreeEq
             override val accuracy: Float = gpsAccuracyDegrees.toFloat()
-            private val variance: Double = (gpsAccuracy * gpsAccuracy / (mPer1DegreeEq * mPer1DegreeEq))
-            override val varianceXX: Double = variance
-            override val varianceYY: Double = variance
-            override val varianceXY: Double = variance
-            override val varianceYX: Double = variance
+            private val covariance: Double = (gpsAccuracy * gpsAccuracy / (mPer1DegreeEq * mPer1DegreeEq))
+            override val covarianceXX: Double = covariance
+            override val covarianceYY: Double = covariance
+            override val covarianceXY: Double = covariance
+            override val covarianceYX: Double = covariance
         }
     }
 

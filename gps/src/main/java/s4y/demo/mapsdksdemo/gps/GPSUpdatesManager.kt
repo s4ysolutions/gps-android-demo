@@ -43,9 +43,9 @@ class GPSUpdatesManager(
     // listen to filter changes and update _all in order UI to be updated
     private val filterSwitchJob = filterProvider.asStateFlow()
         .onEach {
+            it.reset()
             val updates = store.snapshot
-            if (updates.size < 2) return@onEach
-            it.reset(updates.first())
+            if (updates.isEmpty()) return@onEach
             // NOTE: it should be updates.subRange(1, updates.size),
             // but i skip it for sake of performance
             _all.value = it.apply(updates)
