@@ -4,19 +4,19 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    testImplementation(platform("org.junit:junit-bom:5.10.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    implementation(libs.kotlinxCoroutinesCore)
+    testImplementation(platform(libs.junitBom))
+    testImplementation(libs.jupiterJunitJupiter)
     // testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))
     // testImplementation(kotlin("test-junit"))
     testImplementation(kotlin("test-junit5"))
-    testImplementation("org.mockito:mockito-core:5.9.0")
+    testImplementation(libs.mockitoCore)
 }
 
 tasks.test {

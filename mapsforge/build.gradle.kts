@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "s4y.demo.mapsdksdemo.mapsforge"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
@@ -26,26 +26,24 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation(libs.coreKtx)
+    implementation(libs.appcompat)
+    implementation(libs.material)
     implementation(project(":map"))
     implementation(project(":mapsforge-maps"))
-    implementation("org.mapsforge:mapsforge-map-android:0.20.0")
-    implementation("org.mapsforge:mapsforge-themes:0.20.0")
-    implementation("com.caverock:androidsvg:1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation(libs.mapsforgeMapAndroid)
+    implementation(libs.mapsforgeThemes)
+    implementation(libs.androidsvg)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.extJunit)
+    androidTestImplementation(libs.espressoCore)
 }

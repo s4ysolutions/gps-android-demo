@@ -1,0 +1,74 @@
+[versions]
+accompanistPermissions = "0.33.2-alpha"
+activityCompose = "1.9.2"
+androidsvg = "1.4"
+appcompat = "1.7.0"
+commonsMath3 = "3.6.1"
+composeBom = "2024.09.03"
+coreKtx = "1.13.1"
+espressoCore = "3.6.1"
+junit = "4.13.2"
+junitBom = "5.11.2"
+junitVersion = "1.2.1"
+kotlin = "2.0.21"
+androidGradlePlugin = "8.7.1"
+kotlinxCoroutinesCore = "1.7.3"
+lifecycleRuntimeKtx = "2.8.6"
+lifecycleService = "2.8.6"
+mapsforgeMapAndroid = "0.20.0"
+mapsforgeThemes = "0.20.0"
+material = "1.12.0"
+mockitoCore = "5.10.0"
+okhttp = "3.12.13"
+okio = "1.17.6"
+playServicesLocation = "21.3.0"
+truth = "1.4.1"
+vtmAndroid = "0.20.0"
+vtmHttp = "0.20.0"
+vtmJts = "0.20.0"
+vtmThemes = "0.20.0"
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+[libraries]
+accompanistPermissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+activityCompose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidsvg = { module = "com.caverock:androidsvg", version.ref = "androidsvg" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+commonsMath3 = { module = "org.apache.commons:commons-math3", version.ref = "commonsMath3" }
+composeBom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+extJunit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+junit = { module = "junit:junit", version.ref = "junit" }
+junitBom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api" }
+jupiterJunitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
+kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+lifecycleRuntimeKtx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+lifecycleService = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycleService" }
+lifecycleViewmodelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+mapsforgeMapAndroid = { module = "org.mapsforge:mapsforge-map-android", version.ref = "mapsforgeMapAndroid" }
+mapsforgeThemes = { module = "org.mapsforge:mapsforge-themes", version.ref = "mapsforgeThemes" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+material3 = { module = "androidx.compose.material3:material3" }
+mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+playServicesLocation = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+ui = { module = "androidx.compose.ui:ui" }
+uiTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+uiTestManifest = { module = "androidx.compose.ui:ui-test-manifest" }
+uiTooling = { module = "androidx.compose.ui:ui-tooling" }
+vtmAndroid = { module = "org.mapsforge:vtm-android", version.ref = "vtmAndroid" }
+vtmHttp = { module = "org.mapsforge:vtm-http", version.ref = "vtmHttp" }
+vtmJts = { module = "org.mapsforge:vtm-jts", version.ref = "vtmJts" }
+vtmThemes = { module = "org.mapsforge:vtm-themes", version.ref = "vtmThemes" }
+

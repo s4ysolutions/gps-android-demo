@@ -4,8 +4,8 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.test {
@@ -16,10 +16,10 @@ tasks.test {
 }
 
 dependencies {
-    implementation("org.apache.commons:commons-math3:3.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    testImplementation(platform("org.junit:junit-bom:5.10.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    implementation(libs.commonsMath3)
+    implementation(libs.kotlinxCoroutinesCore)
+    testImplementation(platform(libs.junitBom))
+    testImplementation(libs.junitJupiter)
+    testImplementation(libs.junitJupiterApi)
     // testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
