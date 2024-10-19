@@ -20,7 +20,6 @@ import s4y.demo.mapsdksdemo.map.dependencies.IMapStateMutable
 import s4y.demo.mapsdksdemo.map.dependencies.clone
 import s4y.demo.mapsdksdemo.map.dependencies.layers.BaseLayersContainer
 import s4y.demo.mapsdksdemo.map.dependencies.layers.ICurrentGPSPositionLayer
-import s4y.demo.mapsdksdemo.map.dependencies.layers.ILayersContainer
 import s4y.demo.mapsdksdemo.map.dependencies.layers.ITrackLayer
 import s4y.demo.mapsdksdemo.mapsforge.maps.MapsforgeMaps
 import s4y.demo.mapsdksdemo.mapsforgevtm.layers.MapsforgeCurrentGPSPositionLayer

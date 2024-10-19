@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import s4y.demo.mapsdksdemo.Application
+import s4y.demo.mapsdksdemo.BuildConfig
 import s4y.demo.mapsdksdemo.appstate.GPSFilterPreference
 import s4y.demo.mapsdksdemo.appstate.LastMapStatePreference
 import s4y.demo.mapsdksdemo.gps.dependencies.IGPSCurrentPositionProvider
@@ -25,6 +26,7 @@ import s4y.demo.mapsdksdemo.map.MapsManager
 import s4y.demo.mapsdksdemo.mapsforgevtm.MapsforgeMapFactory
 import s4y.demo.mapsdksdemo.mapsforgevtm.VtmMapFactory
 import s4y.demo.mapsdksdemo.gps.stats.GPSStats
+import s4y.demo.mapsdksdemo.mapbox.MapboxMapFactory
 
 class Di {
     companion object {
@@ -44,7 +46,8 @@ class Di {
             MapsManager(
                 listOf(
                     MapsforgeMapFactory(application),
-                    VtmMapFactory()
+                    VtmMapFactory(),
+                    MapboxMapFactory(BuildConfig.mapboxAccessToken),
                 )
             )
         }

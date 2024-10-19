@@ -1,3 +1,13 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+val mapboxAccessToken = localProperties.getProperty("MAPBOX_ACCESS_TOKEN")
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,6 +17,11 @@ plugins {
 android {
     namespace = "s4y.demo.mapsdksdemo"
     compileSdk = 34
+
+    buildFeatures {
+        compose = true
+        buildConfig=true
+    }
 
     defaultConfig {
         applicationId = "s4y.demo.mapsdksdemo"
@@ -19,6 +34,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "mapboxAccessToken", "\"$mapboxAccessToken\"")
     }
 
     buildTypes {
@@ -31,9 +47,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-    buildFeatures {
-        compose = true
     }
     packaging {
         resources {
@@ -53,6 +66,7 @@ android {
 dependencies {
     implementation(project(":map"))
     implementation(project(":mapsforge"))
+    implementation(project(":mapbox"))
     implementation(project(":gps-android"))
     implementation(project(":mapsforge-vtm"))
     implementation(project(":gps"))
@@ -61,7 +75,7 @@ dependencies {
     implementation(libs.activityCompose)
     implementation(libs.lifecycleViewmodelCompose)
     implementation(libs.accompanistPermissions)
-    implementation(platform(libs.composeBom))
+    implementation(platform(libs.compose.bom))
     // implementation(libs.ui)
     // implementation("androidx.compose.ui:ui-graphics")
     // implementation("androidx.compose.ui:ui-tooling-preview")
@@ -69,8 +83,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.extJunit)
     androidTestImplementation(libs.espressoCore)
-    androidTestImplementation(platform(libs.composeBom))
+    androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.uiTestJunit4)
-    debugImplementation(libs.uiTooling)
+    debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.uiTestManifest)
 }
