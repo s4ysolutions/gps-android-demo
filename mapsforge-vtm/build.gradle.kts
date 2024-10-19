@@ -32,17 +32,13 @@ android {
     }
 }
 
+val vtmAndroidVersion = libs.versions.vtmAndroid.get()
 dependencies {
-
-    runtimeOnly(libs.vtmAndroid)
-    runtimeOnly(libs.vtmAndroid)
-    runtimeOnly(libs.vtmAndroid)
-    runtimeOnly(libs.vtmAndroid)
-    implementation(libs.vtmAndroid)
+    implementation(libs.vtm.android)
     implementation(libs.androidsvg)
-    implementation(libs.vtmHttp)
-    implementation(libs.vtmThemes)
-    implementation(libs.vtmJts)
+    implementation(libs.vtm.http)
+    implementation(libs.vtm.themes)
+    implementation(libs.vtm.jts)
     //implementation("org.mapsforge:vtm-mvt:0.20.0")
     //implementation("org.mapsforge:vtm-android-mvt:0.20.0")
 // https://github.com/square/okhttp/issues/4481
@@ -57,4 +53,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.extJunit)
     androidTestImplementation(libs.espressoCore)
+
+    //noinspection UseTomlInstead
+    runtimeOnly("org.mapsforge:vtm-android:${vtmAndroidVersion}:natives-armeabi-v7a")
+    //noinspection UseTomlInstead
+    runtimeOnly("org.mapsforge:vtm-android:${vtmAndroidVersion}:natives-arm64-v8a")
+    //noinspection UseTomlInstead
+    runtimeOnly("org.mapsforge:vtm-android:${vtmAndroidVersion}:natives-x86")
+    //noinspection UseTomlInstead
+    runtimeOnly("org.mapsforge:vtm-android:${vtmAndroidVersion}:natives-x86_64")
 }
