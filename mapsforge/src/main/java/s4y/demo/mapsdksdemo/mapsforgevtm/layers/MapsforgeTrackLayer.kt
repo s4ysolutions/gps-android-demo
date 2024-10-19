@@ -37,5 +37,4 @@ class MapsforgeTrackLayer(private val mapView: MapView) : ITrackLayer {
         set(value) {
             layer.isVisible = value
         }
-
 }
